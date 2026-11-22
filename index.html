@@ -65,7 +65,7 @@ footer{padding:20px 0 34px;color:var(--muted);font-size:.85rem}
 
 <div class="hero">
  <div>
-  <div class="badge">ICSE · Class 1 to 10</div>
+  <div class="badge">ICSE · Class 1 to 10 + Class 11 foundations</div>
   <h1>Take a photo of your textbook. Watch it move.</h1>
   <p>Snap any page with a diagram. ConceptLab turns it into a simulation you control with sliders, so you see why the formula works.</p>
   <button class="btn" id="start">Try it with a textbook photo</button>
@@ -90,6 +90,7 @@ footer{padding:20px 0 34px;color:var(--muted);font-size:.85rem}
   <button class="btn ghost" id="sample">Use a sample Force page</button>
  </div>
  <div class="found" id="found" hidden></div>
+ <div class="row"><span class="note">Or explore directly:</span><button class="pill" data-sim="speed">Speed</button><button class="pill" data-sim="reflection">Reflection</button><button class="pill" data-sim="circuit">Circuit</button></div>
  <p class="note">Your photo is sent to our server to be read by AI and is not stored.</p>
 </section>
 
@@ -111,6 +112,69 @@ footer{padding:20px 0 34px;color:var(--muted);font-size:.85rem}
   </div>
  </div>
 </section>
+<section class="panel" id="sim_speed" hidden><div class="topics"><span class="on">Speed, distance and time</span><span>Class 6 to 8</span></div><div class="sim"><div><canvas id="cv_sp" width="560" height="260" aria-label="Car moving along a road"></canvas><canvas id="gr_sp" width="560" height="260" style="margin-top:12px" aria-label="Distance time graph"></canvas></div><div><div class="formula">d = v × t</div><p class="note" style="margin-top:0">Distance covered equals speed multiplied by time.</p>
+<div class="ctl"><label for="sp_v">Speed (v) <output id="sp_vo"></output></label><input id="sp_v" type="range" min="1" max="20" step="1" value="8"></div>
+<div class="ctl"><label for="sp_t">Time (t) <output id="sp_to"></output></label><input id="sp_t" type="range" min="1" max="10" step="1" value="5"></div>
+<div class="ctl"><label>Distance (d) <output id="sp_do"></output></label></div><div class="learn" id="sp_l"></div></div></div></section>
+<section class="panel" id="sim_refl" hidden><div class="topics"><span class="on">Reflection of light</span><span>Class 7 to 8</span></div><div class="sim"><div><canvas id="cv_rf" width="560" height="260" aria-label="Light ray reflecting from a plane mirror"></canvas></div><div><div class="formula">∠i = ∠r</div><p class="note" style="margin-top:0">The angle of incidence equals the angle of reflection, both measured from the normal.</p>
+<div class="ctl"><label for="rf_a">Angle of incidence (i) <output id="rf_ao"></output></label><input id="rf_a" type="range" min="0" max="80" step="5" value="35"></div><div class="learn" id="rf_l"></div></div></div></section>
+<section class="panel" id="sim_circ" hidden><div class="topics"><span class="on">Simple electric circuit</span><span>Class 8 to 10</span></div><div class="sim"><div><canvas id="cv_ci" width="560" height="260" aria-label="Circuit with battery, bulb, resistor and switch"></canvas></div><div><div class="formula">V = I × R</div><p class="note" style="margin-top:0">Current is the voltage divided by the resistance.</p>
+<div class="ctl"><label for="ci_v">Battery voltage (V) <output id="ci_vo"></output></label><input id="ci_v" type="range" min="1" max="12" step="1" value="6"></div>
+<div class="ctl"><label for="ci_r">Resistance (R) <output id="ci_ro"></output></label><input id="ci_r" type="range" min="1" max="20" step="1" value="4"></div>
+<div class="ctl"><label><input type="checkbox" id="ci_s" checked> Switch ON</label></div>
+<div class="ctl"><label>Current (I) <output id="ci_io"></output></label></div><div class="learn" id="ci_l"></div></div></div></section>
+<script>
+(function(){
+var cs=function(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()},$=function(i){return document.getElementById(i)};
+var IDS={speed:'sim_speed',reflection:'sim_refl',circuit:'sim_circ'};
+window.hideExtra=function(){for(var k in IDS)$(IDS[k]).hidden=true};
+window.showSim=function(n){if(!IDS[n])return false;window.hideExtra();var e=$(IDS[n]);e.hidden=false;$('simPanel').hidden=true;setTimeout(function(){e.scrollIntoView({behavior:'smooth',block:'start'})},120);return true};
+Array.prototype.forEach.call(document.querySelectorAll('[data-sim]'),function(b){b.onclick=function(){window.showSim(b.getAttribute('data-sim'))}});
+function axes(g,W,H,p,xl,yl){g.strokeStyle=cs('--line');g.lineWidth=2;g.beginPath();g.moveTo(p,10);g.lineTo(p,H-p);g.lineTo(W-14,H-p);g.stroke();g.fillStyle=cs('--muted');g.font='600 13px Nunito,sans-serif';g.textAlign='center';g.fillText(xl,W/2,H-10);g.save();g.translate(14,H/2);g.rotate(-Math.PI/2);g.fillText(yl,0,0);g.restore()}
+function arrow(g,x1,y1,x2,y2,col){g.strokeStyle=col;g.fillStyle=col;g.lineWidth=4;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();var a=Math.atan2(y2-y1,x2-x1);g.beginPath();g.moveTo(x2,y2);g.lineTo(x2-13*Math.cos(a-.4),y2-13*Math.sin(a-.4));g.lineTo(x2-13*Math.cos(a+.4),y2-13*Math.sin(a+.4));g.fill()}
+/* speed */
+var sv=$('sp_v'),stt=$('sp_t'),c1=$('cv_sp').getContext('2d'),g1=$('gr_sp').getContext('2d'),t0=performance.now();
+function drawSpeed(now){var v=+sv.value,t=+stt.value,W=560,H=260,p=44;
+ $('sp_vo').textContent=v+' m/s';$('sp_to').textContent=t+' s';$('sp_do').textContent=v*t+' m';
+ var tt=Math.min(((now-t0)/1000)%(t+1.5),t),d=v*tt;
+ c1.clearRect(0,0,W,H);c1.fillStyle=cs('--line');c1.fillRect(0,200,W,6);c1.fillStyle=cs('--muted');c1.font='600 12px Nunito,sans-serif';c1.textAlign='center';
+ for(var m=0;m<=200;m+=50){var x=45+m/200*(W-140);c1.fillRect(x,206,2,8);c1.fillText(m+' m',x,230)}
+ var cx=10+d/200*(W-140);c1.fillStyle=cs('--blue');c1.beginPath();c1.roundRect(cx,160,70,32,8);c1.fill();
+ c1.fillStyle=cs('--ink');c1.beginPath();c1.arc(cx+16,196,8,0,7);c1.fill();c1.beginPath();c1.arc(cx+54,196,8,0,7);c1.fill();
+ c1.font='700 16px Nunito,sans-serif';c1.textAlign='left';c1.fillText('t = '+tt.toFixed(1)+' s     d = '+d.toFixed(0)+' m',20,40);
+ var X=function(a){return p+a/10*(W-p-24)},Y=function(a){return H-p-a/200*(H-p-20)};
+ g1.clearRect(0,0,W,H);axes(g1,W,H,p,'Time t (s)','Distance d (m)');
+ g1.strokeStyle=cs('--blue');g1.lineWidth=3;g1.beginPath();g1.moveTo(X(0),Y(0));g1.lineTo(X(t),Y(v*t));g1.stroke();
+ g1.fillStyle=cs('--accent');g1.strokeStyle=cs('--ink');g1.lineWidth=2;g1.beginPath();g1.arc(X(tt),Y(d),8,0,7);g1.fill();g1.stroke();
+ $('sp_l').textContent='At '+v+' m/s, in '+t+' s the car covers '+v*t+' m. A steeper line on the graph means a faster car.'}
+/* reflection */
+var ra=$('rf_a'),c2=$('cv_rf').getContext('2d');
+function drawRefl(){var i=+ra.value,r=i*Math.PI/180,W=560,H=260,ox=280,oy=210,L=170,s=Math.sin(r),c=Math.cos(r);$('rf_ao').textContent=i+'°';
+ c2.clearRect(0,0,W,H);c2.fillStyle=cs('--muted');c2.fillRect(100,oy,360,6);c2.strokeStyle=cs('--muted');c2.lineWidth=2;
+ for(var x=104;x<460;x+=14){c2.beginPath();c2.moveTo(x,oy+6);c2.lineTo(x-8,oy+16);c2.stroke()}
+ c2.setLineDash([6,6]);c2.beginPath();c2.moveTo(ox,oy);c2.lineTo(ox,30);c2.stroke();c2.setLineDash([]);
+ arrow(c2,ox-L*s,oy-L*c,ox-4*s,oy-4*c,cs('--blue'));arrow(c2,ox,oy,ox+L*s,oy-L*c,cs('--green'));
+ c2.fillStyle=cs('--ink');c2.font='700 15px Nunito,sans-serif';c2.textAlign='right';c2.fillText('i = '+i+'°',ox-14,oy-24);c2.textAlign='left';c2.fillText('r = '+i+'°',ox+14,oy-24);c2.fillText('normal',ox+8,42);
+ $('rf_l').textContent=i===0?'The ray hits the mirror straight on (along the normal), so it bounces straight back.':'The ray comes in at '+i+'° and leaves at '+i+'°. Move the slider: the reflected ray always mirrors the incoming one.'}
+/* circuit */
+var cv=$('ci_v'),cr=$('ci_r'),sw=$('ci_s'),c3=$('cv_ci').getContext('2d'),off=0,last=performance.now();
+function drawCirc(now){var V=+cv.value,R=+cr.value,on=sw.checked,I=on?V/R:0,dt=Math.min((now-last)/1000,.1),x0=80,x1=480,y0=50,y1=210,W=560,H=260;last=now;
+ off=(off+I*45*dt)%1120;$('ci_vo').textContent=V+' V';$('ci_ro').textContent=R+' Ω';$('ci_io').textContent=I.toFixed(2)+' A';
+ c3.clearRect(0,0,W,H);c3.strokeStyle=cs('--ink');c3.lineWidth=3;c3.strokeRect(x0,y0,x1-x0,y1-y0);
+ if(on)for(var k=0;k<14;k++){var q=(off+k*80)%1120,px,py;if(q<400){px=x0+q;py=y0}else if(q<560){px=x1;py=y0+q-400}else if(q<960){px=x1-(q-560);py=y1}else{px=x0;py=y1-(q-960)}
+  c3.fillStyle=cs('--accent');c3.beginPath();c3.arc(px,py,5,0,7);c3.fill()}
+ var bg=cs('--bg');c3.fillStyle=bg;c3.fillRect(x0-16,100,32,60);c3.fillRect(x1-16,92,32,76);c3.fillRect(250,28,60,44);c3.fillRect(236,190,88,32);
+ c3.strokeStyle=cs('--ink');c3.lineWidth=3;c3.beginPath();c3.moveTo(x0-18,118);c3.lineTo(x0+18,118);c3.moveTo(x0-9,138);c3.lineTo(x0+9,138);c3.stroke();
+ c3.fillStyle=cs('--ink');c3.font='700 14px Nunito,sans-serif';c3.textAlign='right';c3.fillText('+',x0-24,122);c3.fillText('−',x0-24,144);c3.textAlign='left';c3.fillText(V+' V',x0+24,132);
+ c3.beginPath();c3.moveTo(x1,96);for(var z=0;z<6;z++){c3.lineTo(x1+(z%2?-10:10),104+z*10)}c3.lineTo(x1,164);c3.stroke();c3.fillText(R+' Ω',x1+16,134);
+ var gl=Math.min(1,I/1.5);if(gl>0){c3.fillStyle='rgba(255,200,61,'+(gl*.35)+')';c3.beginPath();c3.arc(280,y0,34,0,7);c3.fill()}
+ c3.fillStyle=gl>0?'rgba(255,200,61,'+(.25+gl*.75)+')':bg;c3.strokeStyle=cs('--ink');c3.beginPath();c3.arc(280,y0,17,0,7);c3.fill();c3.stroke();
+ c3.beginPath();c3.moveTo(268,y0-12);c3.lineTo(292,y0+12);c3.moveTo(292,y0-12);c3.lineTo(268,y0+12);c3.stroke();
+ c3.beginPath();c3.arc(250,y1,4,0,7);c3.arc(310,y1,4,0,7);c3.fill();c3.beginPath();c3.moveTo(250,y1);c3.lineTo(on?310:304,on?y1:y1-22);c3.stroke();
+ $('ci_l').textContent=on?'With '+V+' V and '+R+' Ω, the current is '+I.toFixed(2)+' A. Raise the resistance and the current drops, so the bulb gets dimmer.':'The switch is open, so the circuit is broken and no current flows.'}
+requestAnimationFrame(function L(now){if(!$('sim_speed').hidden)drawSpeed(now);if(!$('sim_refl').hidden)drawRefl();if(!$('sim_circ').hidden)drawCirc(now);requestAnimationFrame(L)});
+})();
+</script>
 <footer>ConceptLab prototype · Physics simulations for ICSE students</footer>
 </div>
 
@@ -189,8 +253,8 @@ an.onclick=function(){
   .then(function(d){
    var p=document.getElementById('simPanel');found.hidden=false;
    found.innerHTML='<b>Found: '+esc(d.concept)+'</b><br>'+esc(d.subject)+', Class '+esc(d.class_level)+(d.formula?' · '+esc(d.formula):'')+'<br>'+esc(d.summary);
-   if(d.simulation==='force'){p.hidden=false;update();st=performance.now();setTimeout(function(){p.scrollIntoView({behavior:'smooth',block:'start'})},150)}
-   else{p.hidden=true;found.innerHTML+='<br><i>The simulation for this topic is coming soon.</i>'}
+   if(d.simulation==='force'){window.hideExtra&&window.hideExtra();p.hidden=false;update();st=performance.now();setTimeout(function(){p.scrollIntoView({behavior:'smooth',block:'start'})},150)}
+   else{p.hidden=true;window.hideExtra&&window.hideExtra();if(!(window.showSim&&window.showSim(d.simulation))){found.innerHTML+='<br><i>The simulation for this topic is coming soon.</i>'}}
    done()})
   .catch(function(e){found.hidden=false;found.innerHTML='<b>Could not read the page.</b> '+esc(e.message);done()})
  })};
