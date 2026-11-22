@@ -2,19 +2,19 @@
 const hits = new Map();
 const LIMIT = 20, WINDOW = 60 * 60 * 1000;
 
-const PROMPT = `You are helping ICSE students (Class 1 to 10) in India. Look at this textbook photo.
+const PROMPT = `You are helping ICSE students (Class 1 to 10, plus Class 11 foundations) in India. Look at this textbook photo.
 Identify the main concept taught. Reply with ONLY a JSON object, no other text:
 {
  "is_textbook": true or false,
  "subject": "Physics | Chemistry | Biology | Maths | Other",
- "class_level": "best guess like 9, or unknown",
- "concept": "short name, e.g. Force and acceleration",
+ "class_level": "best guess like 7, or unknown",
+ "concept": "short name, e.g. Reflection of light",
  "formula": "main formula or empty string",
  "variables": ["list of key variables"],
  "summary": "one simple sentence a child can understand",
- "simulation": one of "force","gravity","velocity","projectile","circular_motion","none"
+ "simulation": one of "force","speed","reflection","circuit","gravity","velocity","projectile","circular_motion","none"
 }
-Use "force" for F = ma, Newton's laws and pushes/pulls. Use "none" if the topic does not match a listed simulation.`;
+Use "force" for F = ma, Newton's laws, pushes and pulls. Use "speed" for speed, distance, time and d = v x t. Use "reflection" for laws of reflection, mirrors and rays. Use "circuit" for simple electric circuits, current, voltage, resistance and Ohm's law. Use "none" if the topic matches none of these.`;
 
 const MODELS = [
   process.env.GROQ_MODEL || 'qwen/qwen3.8-27b',
@@ -54,7 +54,7 @@ module.exports = async (req, res) => {
       });
       if (!r.ok) {
         lastErr = 'AI error ' + r.status + ' (' + model + '): ' + (await r.text()).slice(0, 200);
-        if (r.status === 400 || r.status === 404) continue; // try next model
+        if (r.status === 400 || r.status === 404) continue;
         return res.status(502).json({ error: lastErr });
       }
       const data = await r.json();
