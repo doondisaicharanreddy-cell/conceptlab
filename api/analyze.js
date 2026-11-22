@@ -1,4 +1,4 @@
-// Vercel serverless function: reads a textbook photo with Grok and returns the concept.
+// Vercel serverless function: reads a textbook photo with Groq and returns the concept.
 const hits = new Map();
 const LIMIT = 20, WINDOW = 60 * 60 * 1000;
 
@@ -16,9 +16,14 @@ Identify the main concept taught. Reply with ONLY a JSON object, no other text:
 }
 Use "force" for F = ma, Newton's laws and pushes/pulls. Use "none" if the topic does not match a listed simulation.`;
 
+const MODELS = [
+  process.env.GROQ_MODEL || 'qwen/qwen3.8-27b',
+  'meta-llama/llama-4-scout-17b-16e-instruct'
+];
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Use POST' });
-  const key = process.env.XAI_API_KEY || process.env.ANTHROPIC_API_KEY;
+  const key = process.env.GROQ_API_KEY || process.env.XAI_API_KEY || process.env.ANTHROPIC_API_KEY;
   if (!key) return res.status(500).json({ error: 'Server is missing its API key' });
 
   const ip = (req.headers['x-forwarded-for'] || 'local').split(',')[0].trim();
@@ -32,25 +37,35 @@ module.exports = async (req, res) => {
     if (!/^data:image\/(jpeg|png|webp);base64,/.test(image)) return res.status(400).json({ error: 'Please send a JPG, PNG or WebP image' });
     if (image.length > 4_000_000) return res.status(413).json({ error: 'Image is too large' });
 
-    const r = await fetch('https://api.x.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + key },
-      body: JSON.stringify({
-        model: process.env.XAI_MODEL || 'grok-4',
-        max_tokens: 800,
-        messages: [{ role: 'user', content: [
-          { type: 'image_url', image_url: { url: image, detail: 'high' } },
-          { type: 'text', text: PROMPT }
-        ] }]
-      })
-    });
-    if (!r.ok) { const t = await r.text(); return res.status(502).json({ error: 'AI error ' + r.status + ': ' + t.slice(0, 200) }); }
-    const data = await r.json();
-    const text = (data.choices && data.choices[0] && data.choices[0].message.content) || '';
-    const match = text.match(/\{[\s\S]*\}/);
-    const json = JSON.parse(match ? match[0] : text);
-    if (json.is_textbook === false) return res.status(422).json({ error: 'This does not look like a textbook page. Try a clearer photo.' });
-    return res.status(200).json(json);
+    let lastErr = '';
+    for (const model of MODELS) {
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + key },
+        body: JSON.stringify({
+          model,
+          max_tokens: 1500,
+          temperature: 0.2,
+          messages: [{ role: 'user', content: [
+            { type: 'text', text: PROMPT },
+            { type: 'image_url', image_url: { url: image } }
+          ] }]
+        })
+      });
+      if (!r.ok) {
+        lastErr = 'AI error ' + r.status + ' (' + model + '): ' + (await r.text()).slice(0, 200);
+        if (r.status === 400 || r.status === 404) continue; // try next model
+        return res.status(502).json({ error: lastErr });
+      }
+      const data = await r.json();
+      let text = (data.choices && data.choices[0] && data.choices[0].message.content) || '';
+      text = text.replace(/<think>[\s\S]*?<\/think>/g, '');
+      const match = text.match(/\{[\s\S]*\}/);
+      const json = JSON.parse(match ? match[0] : text);
+      if (json.is_textbook === false) return res.status(422).json({ error: 'This does not look like a textbook page. Try a clearer photo.' });
+      return res.status(200).json(json);
+    }
+    return res.status(502).json({ error: lastErr || 'No AI model available' });
   } catch (e) {
     return res.status(500).json({ error: 'Could not read that page. Try a clearer photo.' });
   }
