@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ConceptLab – Make your textbook move</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f8fb;--surface:#fff;--ink:#14213d;--muted:#5a6785;--line:#d9e0ec;--accent:#ffc83d;--accent-ink:#14213d;--blue:#2f5bea;--green:#14a37f;--grid:rgba(47,91,234,.07);color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1830;--surface:#18233f;--ink:#eef2fb;--muted:#9fb0d3;--line:#2b3a5e;--accent:#ffc83d;--accent-ink:#14213d;--blue:#7b9bff;--green:#3ed3a9;--grid:rgba(123,155,255,.08);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1830;--surface:#18233f;--ink:#eef2fb;--muted:#9fb0d3;--line:#2b3a5e;--blue:#7b9bff;--green:#3ed3a9;--grid:rgba(123,155,255,.08);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;line-height:1.55;
+background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px}
+h1,h2,h3{font-family:'Bricolage Grotesque',system-ui,sans-serif;line-height:1.1;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+header{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
+.logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.3rem}
+.logo span{background:var(--accent);color:var(--accent-ink);padding:0 6px;border-radius:6px;margin-right:2px}
+.pill{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:6px 14px;font:600 .85rem Nunito,sans-serif;cursor:pointer}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center;padding:28px 0 36px}
+.hero h1{font-size:clamp(2.2rem,6vw,3.8rem);font-weight:800;letter-spacing:-.02em}
+.hero p{font-size:1.1rem;color:var(--muted);max-width:46ch;margin:16px 0 22px}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:14px 22px;font:700 1rem 'Bricolage Grotesque',sans-serif;cursor:pointer;box-shadow:0 4px 0 rgba(20,33,61,.25)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(20,33,61,.25)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.demo{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:14px}
+.demo canvas{width:100%;height:auto;display:block}
+.badge{display:inline-block;font-size:.8rem;font-weight:700;color:var(--blue);background:color-mix(in srgb,var(--blue) 12%,transparent);padding:3px 10px;border-radius:99px;margin-bottom:12px}
+section.panel{background:var(--surface);border:1.5px solid var(--line);border-radius:20px;padding:22px;margin-bottom:22px}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:6px 0 30px}
+.how div{padding:4px 2px}
+.how h3{font-size:1.05rem;margin-bottom:4px}
+.how p{margin:0;color:var(--muted);font-size:.95rem}
+.drop{border:2px dashed var(--line);border-radius:16px;padding:26px;text-align:center;cursor:pointer;display:block}
+.drop:hover,.drop:focus-within{border-color:var(--blue)}
+.drop img{max-width:100%;max-height:260px;border-radius:10px;display:block;margin:0 auto 10px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.found{margin-top:16px;padding:14px 16px;border-radius:14px;background:color-mix(in srgb,var(--green) 12%,transparent);border:1.5px solid var(--green)}
+.found b{font-family:'Bricolage Grotesque',sans-serif}
+.note{font-size:.85rem;color:var(--muted);margin-top:10px}
+.sim{display:grid;grid-template-columns:1.3fr 1fr;gap:18px}
+.sim canvas{width:100%;height:auto;display:block;background:var(--bg);border:1.5px solid var(--line);border-radius:14px}
+.ctl{margin:12px 0}
+.ctl label{display:flex;justify-content:space-between;font-weight:700}
+.ctl output{font-family:'Bricolage Grotesque',sans-serif;color:var(--blue)}
+input[type=range]{width:100%;accent-color:var(--blue);height:32px}
+.formula{font-family:'Bricolage Grotesque',sans-serif;font-size:1.6rem;font-weight:700;margin:6px 0 4px}
+.learn{background:color-mix(in srgb,var(--accent) 22%,transparent);border-radius:12px;padding:12px 14px;margin-top:12px;font-size:.95rem}
+.topics{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.topics span{padding:5px 12px;border-radius:99px;border:1.5px solid var(--line);font-size:.85rem;font-weight:600;color:var(--muted)}
+.topics span.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+footer{padding:20px 0 34px;color:var(--muted);font-size:.85rem}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+@media (max-width:760px){.hero,.sim,.how{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="logo"><span>Concept</span>Lab</div><button class="pill" id="theme">Dark / Light</button></header>
+
+<div class="hero">
+ <div>
+  <div class="badge">ICSE · Class 1 to 10</div>
+  <h1>Take a photo of your textbook. Watch it move.</h1>
+  <p>Snap any page with a diagram. ConceptLab turns it into a simulation you control with sliders, so you see why the formula works.</p>
+  <button class="btn" id="start">Try it with a textbook photo</button>
+ </div>
+ <div class="demo"><canvas id="heroCv" width="480" height="300" aria-label="Animated block being pushed by a force"></canvas></div>
+</div>
+
+<div class="how">
+ <div><h3>1. Snap the page</h3><p>Take a photo of the topic, diagram included.</p></div>
+ <div><h3>2. We find the concept</h3><p>AI reads the page and picks the right simulation.</p></div>
+ <div><h3>3. Play with it</h3><p>Change the values and see the graph respond live.</p></div>
+</div>
+
+<section class="panel" id="upload">
+ <h2 style="margin-bottom:12px">Upload your textbook page</h2>
+ <label class="drop" id="dropLbl">
+  <div id="prev"><b>Tap to take a photo or choose an image</b><br><span class="note">JPG or PNG of a textbook page</span></div>
+  <input type="file" id="file" accept="image/*" capture="environment" hidden>
+ </label>
+ <div class="row">
+  <button class="btn" id="analyze" disabled>Make it move</button>
+  <button class="btn ghost" id="sample">Use a sample Force page</button>
+ </div>
+ <div class="found" id="found" hidden></div>
+ <p class="note">Your photo is sent to our server to be read by AI and is not stored.</p>
+</section>
+
+<section class="panel" id="simPanel" hidden>
+ <div class="topics"><span class="on">Force</span><span>Gravity (soon)</span><span>Velocity (soon)</span><span>Circular motion (soon)</span></div>
+ <div class="sim">
+  <div>
+   <canvas id="simCv" width="560" height="260" aria-label="Block with force arrow"></canvas>
+   <canvas id="grCv" width="560" height="260" style="margin-top:12px" aria-label="Graph of force against acceleration"></canvas>
+  </div>
+  <div>
+   <div class="formula">F = m × a</div>
+   <p class="note" style="margin-top:0">Force is the push needed to give a mass an acceleration.</p>
+   <div class="ctl"><label for="m">Mass (m) <output id="mo">5 kg</output></label><input id="m" type="range" min="1" max="10" step="1" value="5"></div>
+   <div class="ctl"><label for="a">Acceleration (a) <output id="ao">2 m/s²</output></label><input id="a" type="range" min="0" max="6" step="0.5" value="2"></div>
+   <div class="ctl"><label>Force (F) <output id="fo">10 N</output></label></div>
+   <div class="row"><button class="btn ghost" id="replay">Restart block</button></div>
+   <div class="learn" id="learn"></div>
+  </div>
+ </div>
+</section>
+<footer>ConceptLab prototype · Physics simulations for ICSE students</footer>
+</div>
+
+<script>
+(function(){
+var cs=function(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()};
+function drawBlock(ctx,W,H,x,m,F,vis){
+ var floor=H-50,s=26+m*5;
+ ctx.clearRect(0,0,W,H);
+ ctx.fillStyle=cs('--line');ctx.fillRect(0,floor,W,4);
+ ctx.fillStyle=cs('--blue');
+ ctx.beginPath();ctx.roundRect(x,floor-s,s*1.3,s,8);ctx.fill();
+ ctx.fillStyle='#fff';ctx.font='700 16px Nunito,sans-serif';ctx.textAlign='center';
+ ctx.fillText(m+' kg',x+s*.65,floor-s/2+6);
+ if(F>0){var L=Math.min(10+F*3.2,200),y=floor-s/2;
+  ctx.strokeStyle=cs('--green');ctx.fillStyle=cs('--green');ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(x-6-L,y);ctx.lineTo(x-8,y);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x-2,y);ctx.lineTo(x-14,y-9);ctx.lineTo(x-14,y+9);ctx.fill();
+  ctx.fillStyle=cs('--ink');ctx.font='700 15px Nunito,sans-serif';ctx.textAlign='left';
+  ctx.fillText('F = '+F+' N',Math.max(6,x-L-6),y-14);}
+}
+/* hero loop */
+var hc=document.getElementById('heroCv'),hx=hc.getContext('2d'),t0=performance.now();
+function hero(now){var t=((now-t0)/1000)%4,x=20+Math.pow(t,2)*22,m=4,F=8;
+ drawBlock(hx,480,300,Math.min(x,420),m,F);requestAnimationFrame(hero)}
+requestAnimationFrame(hero);
+
+/* simulator */
+var sc=document.getElementById('simCv'),sx=sc.getContext('2d'),gc=document.getElementById('grCv'),gx=gc.getContext('2d');
+var mI=document.getElementById('m'),aI=document.getElementById('a'),st=performance.now();
+function vals(){return{m:+mI.value,a:+aI.value}}
+function graph(m,a){
+ var W=560,H=260,p=44;gx.clearRect(0,0,W,H);
+ gx.strokeStyle=cs('--line');gx.lineWidth=2;gx.beginPath();gx.moveTo(p,10);gx.lineTo(p,H-p);gx.lineTo(W-14,H-p);gx.stroke();
+ gx.fillStyle=cs('--muted');gx.font='600 13px Nunito,sans-serif';gx.textAlign='center';
+ gx.fillText('Acceleration a (m/s²)',W/2,H-10);
+ gx.save();gx.translate(14,H/2);gx.rotate(-Math.PI/2);gx.fillText('Force F (N)',0,0);gx.restore();
+ var X=function(v){return p+v/6*(W-p-24)},Y=function(v){return H-p-v/60*(H-p-20)};
+ gx.strokeStyle=cs('--blue');gx.lineWidth=3;gx.beginPath();gx.moveTo(X(0),Y(0));gx.lineTo(X(6),Y(6*m));gx.stroke();
+ gx.fillStyle=cs('--accent');gx.strokeStyle=cs('--ink');gx.lineWidth=2;
+ gx.beginPath();gx.arc(X(a),Y(a*m),8,0,7);gx.fill();gx.stroke();
+ gx.fillStyle=cs('--ink');gx.textAlign='left';gx.fillText('Slope = m = '+m,X(3.2),Y(3.2*m)-12);
+}
+function update(){var v=vals(),F=v.m*v.a;
+ document.getElementById('mo').textContent=v.m+' kg';
+ document.getElementById('ao').textContent=v.a+' m/s²';
+ document.getElementById('fo').textContent=F+' N';
+ var msg='Keep mass at '+v.m+' kg and raise a: the force goes up in a straight line. ';
+ msg+=v.a===0?'With a = 0 there is no net force, so the block stays at rest or moves steadily.':'Right now you need '+F+' N to speed it up at '+v.a+' m/s².';
+ document.getElementById('learn').textContent=msg;graph(v.m,v.a)}
+mI.oninput=aI.oninput=function(){st=performance.now();update()};
+document.getElementById('replay').onclick=function(){st=performance.now()};
+function loop(now){if(!document.getElementById('simPanel').hidden){var v=vals(),t=(now-st)/1000,x=20+0.5*v.a*t*t*18;
+ if(x>480){st=now;x=20}drawBlock(sx,560,260,x,v.m,v.m*v.a)}requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+
+/* upload flow */
+var file=document.getElementById('file'),an=document.getElementById('analyze'),prev=document.getElementById('prev'),found=document.getElementById('found');
+var cur=null;function esc(t){return String(t||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+function shrink(src,cb){var i=new Image();i.onload=function(){var k=Math.min(1,1280/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.82))};i.src=src}
+function setImg(src){cur=src;prev.innerHTML='<img alt="Your textbook page" src="'+src+'"><span class="note">Tap to change photo</span>';an.disabled=false;found.hidden=true}
+file.onchange=function(){var f=file.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){setImg(e.target.result)};r.readAsDataURL(f)};
+function samplePage(){var c=document.createElement('canvas');c.width=420;c.height=260;var x=c.getContext('2d');
+ x.fillStyle='#fffdf5';x.fillRect(0,0,420,260);x.fillStyle='#222';x.font='700 20px serif';x.fillText('Chapter 1: Force and Newton\u2019s Second Law',16,34);
+ x.font='15px serif';x.fillText('Force = mass \u00d7 acceleration   (F = ma)',16,64);
+ x.fillStyle='#8aa';x.fillRect(60,150,90,60);x.fillStyle='#222';x.fillText('m',98,186);
+ x.strokeStyle='#c33';x.lineWidth=3;x.beginPath();x.moveTo(0+10,180);x.lineTo(56,180);x.stroke();x.fillText('F \u2192 a',16,170);
+ x.fillRect(10,212,400,3);return c.toDataURL()}
+document.getElementById('sample').onclick=function(){setImg(samplePage());an.click()};
+an.onclick=function(){
+ if(!cur)return;an.disabled=true;an.textContent='Reading the page...';
+ var done=function(){an.textContent='Make it move';an.disabled=false};
+ shrink(cur,function(data){
+  fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:data})})
+  .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||'Something went wrong');return j})})
+  .then(function(d){
+   var p=document.getElementById('simPanel');found.hidden=false;
+   found.innerHTML='<b>Found: '+esc(d.concept)+'</b><br>'+esc(d.subject)+', Class '+esc(d.class_level)+(d.formula?' · '+esc(d.formula):'')+'<br>'+esc(d.summary);
+   if(d.simulation==='force'){p.hidden=false;update();st=performance.now();setTimeout(function(){p.scrollIntoView({behavior:'smooth',block:'start'})},150)}
+   else{p.hidden=true;found.innerHTML+='<br><i>The simulation for this topic is coming soon.</i>'}
+   done()})
+  .catch(function(e){found.hidden=false;found.innerHTML='<b>Could not read the page.</b> '+esc(e.message);done()})
+ })};
+document.getElementById('start').onclick=function(){document.getElementById('upload').scrollIntoView({behavior:'smooth'})};
+document.getElementById('theme').onclick=function(){var d=document.documentElement,dark=cs('--bg')==='#0f1830';d.setAttribute('data-theme',dark?'light':'dark');setTimeout(update,30)};
+})();
+</script>
+</body>
+</html>

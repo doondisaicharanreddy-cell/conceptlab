@@ -1,0 +1,3 @@
+{ "name": "conceptlab", "version": "0.2.0", "private": true,
+  "description": "Turn ICSE textbook photos into interactive simulations",
+  "engines": { "node": ">=18" } }
