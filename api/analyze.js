@@ -1,5 +1,5 @@
-// Vercel serverless function: reads a textbook photo with Claude and returns the concept.
-const hits = new Map(); // simple per-IP rate limit (best effort, resets on cold start)
+// Vercel serverless function: reads a textbook photo with Grok and returns the concept.
+const hits = new Map();
 const LIMIT = 20, WINDOW = 60 * 60 * 1000;
 
 const PROMPT = `You are helping ICSE students (Class 1 to 10) in India. Look at this textbook photo.
@@ -18,7 +18,7 @@ Use "force" for F = ma, Newton's laws and pushes/pulls. Use "none" if the topic 
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Use POST' });
-  const key = process.env.ANTHROPIC_API_KEY;
+  const key = process.env.XAI_API_KEY || process.env.ANTHROPIC_API_KEY;
   if (!key) return res.status(500).json({ error: 'Server is missing its API key' });
 
   const ip = (req.headers['x-forwarded-for'] || 'local').split(',')[0].trim();
@@ -29,26 +29,26 @@ module.exports = async (req, res) => {
 
   try {
     const image = (req.body && req.body.image) || '';
-    const m = image.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
-    if (!m) return res.status(400).json({ error: 'Please send a JPG, PNG or WebP image' });
-    if (m[2].length > 4_000_000) return res.status(413).json({ error: 'Image is too large' });
+    if (!/^data:image\/(jpeg|png|webp);base64,/.test(image)) return res.status(400).json({ error: 'Please send a JPG, PNG or WebP image' });
+    if (image.length > 4_000_000) return res.status(413).json({ error: 'Image is too large' });
 
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
+    const r = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + key },
       body: JSON.stringify({
-        model: process.env.CLAUDE_MODEL || 'claude-sonnet-5-5',
-        max_tokens: 600,
+        model: process.env.XAI_MODEL || 'grok-4',
+        max_tokens: 800,
         messages: [{ role: 'user', content: [
-          { type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } },
+          { type: 'image_url', image_url: { url: image, detail: 'high' } },
           { type: 'text', text: PROMPT }
         ] }]
       })
     });
-    if (!r.ok) return res.status(502).json({ error: 'The AI service had a problem. Try again.' });
+    if (!r.ok) { const t = await r.text(); return res.status(502).json({ error: 'AI error ' + r.status + ': ' + t.slice(0, 200) }); }
     const data = await r.json();
-    const text = (data.content || []).map(c => c.text || '').join('');
-    const json = JSON.parse(text.replace(/```json|```/g, '').trim());
+    const text = (data.choices && data.choices[0] && data.choices[0].message.content) || '';
+    const match = text.match(/\{[\s\S]*\}/);
+    const json = JSON.parse(match ? match[0] : text);
     if (json.is_textbook === false) return res.status(422).json({ error: 'This does not look like a textbook page. Try a clearer photo.' });
     return res.status(200).json(json);
   } catch (e) {
