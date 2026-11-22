@@ -57,6 +57,7 @@ input[type=range]{width:100%;accent-color:var(--blue);height:32px}
 footer{padding:20px 0 34px;color:var(--muted);font-size:.85rem}
 :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 @media (max-width:760px){.hero,.sim,.how{grid-template-columns:1fr}}
+.topics span{transition:background .15s}
 </style>
 </head>
 <body>
@@ -70,7 +71,7 @@ footer{padding:20px 0 34px;color:var(--muted);font-size:.85rem}
   <p>Snap any page with a diagram. ConceptLab turns it into a simulation you control with sliders, so you see why the formula works.</p>
   <button class="btn" id="start">Try it with a textbook photo</button>
  </div>
- <div class="demo"><canvas id="heroCv" width="480" height="300" aria-label="Animated block being pushed by a force"></canvas></div>
+ <div class="demo"><canvas id="heroCv" width="600" height="300" aria-label="Animated block being pushed by a force"></canvas></div>
 </div>
 
 <div class="how">
@@ -94,172 +95,127 @@ footer{padding:20px 0 34px;color:var(--muted);font-size:.85rem}
  <p class="note">Your photo is sent to our server to be read by AI and is not stored.</p>
 </section>
 
-<section class="panel" id="simPanel" hidden>
- <div class="topics"><span class="on">Force</span><span>Gravity (soon)</span><span>Velocity (soon)</span><span>Circular motion (soon)</span></div>
- <div class="sim">
-  <div>
-   <canvas id="simCv" width="560" height="260" aria-label="Block with force arrow"></canvas>
-   <canvas id="grCv" width="560" height="260" style="margin-top:12px" aria-label="Graph of force against acceleration"></canvas>
-  </div>
-  <div>
-   <div class="formula">F = m × a</div>
-   <p class="note" style="margin-top:0">Force is the push needed to give a mass an acceleration.</p>
-   <div class="ctl"><label for="m">Mass (m) <output id="mo">5 kg</output></label><input id="m" type="range" min="1" max="10" step="1" value="5"></div>
-   <div class="ctl"><label for="a">Acceleration (a) <output id="ao">2 m/s²</output></label><input id="a" type="range" min="0" max="6" step="0.5" value="2"></div>
-   <div class="ctl"><label>Force (F) <output id="fo">10 N</output></label></div>
-   <div class="row"><button class="btn ghost" id="replay">Restart block</button></div>
-   <div class="learn" id="learn"></div>
-  </div>
- </div>
-</section>
-<section class="panel" id="sim_speed" hidden><div class="topics"><span class="on">Speed, distance and time</span><span>Class 6 to 8</span></div><div class="sim"><div><canvas id="cv_sp" width="560" height="260" aria-label="Car moving along a road"></canvas><canvas id="gr_sp" width="560" height="260" style="margin-top:12px" aria-label="Distance time graph"></canvas></div><div><div class="formula">d = v × t</div><p class="note" style="margin-top:0">Distance covered equals speed multiplied by time.</p>
-<div class="ctl"><label for="sp_v">Speed (v) <output id="sp_vo"></output></label><input id="sp_v" type="range" min="1" max="20" step="1" value="8"></div>
-<div class="ctl"><label for="sp_t">Time (t) <output id="sp_to"></output></label><input id="sp_t" type="range" min="1" max="10" step="1" value="5"></div>
-<div class="ctl"><label>Distance (d) <output id="sp_do"></output></label></div><div class="learn" id="sp_l"></div></div></div></section>
-<section class="panel" id="sim_refl" hidden><div class="topics"><span class="on">Reflection of light</span><span>Class 7 to 8</span></div><div class="sim"><div><canvas id="cv_rf" width="560" height="260" aria-label="Light ray reflecting from a plane mirror"></canvas></div><div><div class="formula">∠i = ∠r</div><p class="note" style="margin-top:0">The angle of incidence equals the angle of reflection, both measured from the normal.</p>
-<div class="ctl"><label for="rf_a">Angle of incidence (i) <output id="rf_ao"></output></label><input id="rf_a" type="range" min="0" max="80" step="5" value="35"></div><div class="learn" id="rf_l"></div></div></div></section>
-<section class="panel" id="sim_circ" hidden><div class="topics"><span class="on">Simple electric circuit</span><span>Class 8 to 10</span></div><div class="sim"><div><canvas id="cv_ci" width="560" height="260" aria-label="Circuit with battery, bulb, resistor and switch"></canvas></div><div><div class="formula">V = I × R</div><p class="note" style="margin-top:0">Current is the voltage divided by the resistance.</p>
-<div class="ctl"><label for="ci_v">Battery voltage (V) <output id="ci_vo"></output></label><input id="ci_v" type="range" min="1" max="12" step="1" value="6"></div>
-<div class="ctl"><label for="ci_r">Resistance (R) <output id="ci_ro"></output></label><input id="ci_r" type="range" min="1" max="20" step="1" value="4"></div>
-<div class="ctl"><label><input type="checkbox" id="ci_s" checked> Switch ON</label></div>
-<div class="ctl"><label>Current (I) <output id="ci_io"></output></label></div><div class="learn" id="ci_l"></div></div></div></section>
-<script>
-(function(){
-var cs=function(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()},$=function(i){return document.getElementById(i)};
-var IDS={speed:'sim_speed',reflection:'sim_refl',circuit:'sim_circ'};
-window.hideExtra=function(){for(var k in IDS)$(IDS[k]).hidden=true};
-window.showSim=function(n){if(!IDS[n])return false;window.hideExtra();var e=$(IDS[n]);e.hidden=false;$('simPanel').hidden=true;setTimeout(function(){e.scrollIntoView({behavior:'smooth',block:'start'})},120);return true};
-Array.prototype.forEach.call(document.querySelectorAll('[data-sim]'),function(b){b.onclick=function(){window.showSim(b.getAttribute('data-sim'))}});
-function axes(g,W,H,p,xl,yl){g.strokeStyle=cs('--line');g.lineWidth=2;g.beginPath();g.moveTo(p,10);g.lineTo(p,H-p);g.lineTo(W-14,H-p);g.stroke();g.fillStyle=cs('--muted');g.font='600 13px Nunito,sans-serif';g.textAlign='center';g.fillText(xl,W/2,H-10);g.save();g.translate(14,H/2);g.rotate(-Math.PI/2);g.fillText(yl,0,0);g.restore()}
-function arrow(g,x1,y1,x2,y2,col){g.strokeStyle=col;g.fillStyle=col;g.lineWidth=4;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();var a=Math.atan2(y2-y1,x2-x1);g.beginPath();g.moveTo(x2,y2);g.lineTo(x2-13*Math.cos(a-.4),y2-13*Math.sin(a-.4));g.lineTo(x2-13*Math.cos(a+.4),y2-13*Math.sin(a+.4));g.fill()}
-/* speed */
-var sv=$('sp_v'),stt=$('sp_t'),c1=$('cv_sp').getContext('2d'),g1=$('gr_sp').getContext('2d'),t0=performance.now();
-function drawSpeed(now){var v=+sv.value,t=+stt.value,W=560,H=260,p=44;
- $('sp_vo').textContent=v+' m/s';$('sp_to').textContent=t+' s';$('sp_do').textContent=v*t+' m';
- var tt=Math.min(((now-t0)/1000)%(t+1.5),t),d=v*tt;
- c1.clearRect(0,0,W,H);c1.fillStyle=cs('--line');c1.fillRect(0,200,W,6);c1.fillStyle=cs('--muted');c1.font='600 12px Nunito,sans-serif';c1.textAlign='center';
- for(var m=0;m<=200;m+=50){var x=45+m/200*(W-140);c1.fillRect(x,206,2,8);c1.fillText(m+' m',x,230)}
- var cx=10+d/200*(W-140);c1.fillStyle=cs('--blue');c1.beginPath();c1.roundRect(cx,160,70,32,8);c1.fill();
- c1.fillStyle=cs('--ink');c1.beginPath();c1.arc(cx+16,196,8,0,7);c1.fill();c1.beginPath();c1.arc(cx+54,196,8,0,7);c1.fill();
- c1.font='700 16px Nunito,sans-serif';c1.textAlign='left';c1.fillText('t = '+tt.toFixed(1)+' s     d = '+d.toFixed(0)+' m',20,40);
- var X=function(a){return p+a/10*(W-p-24)},Y=function(a){return H-p-a/200*(H-p-20)};
- g1.clearRect(0,0,W,H);axes(g1,W,H,p,'Time t (s)','Distance d (m)');
- g1.strokeStyle=cs('--blue');g1.lineWidth=3;g1.beginPath();g1.moveTo(X(0),Y(0));g1.lineTo(X(t),Y(v*t));g1.stroke();
- g1.fillStyle=cs('--accent');g1.strokeStyle=cs('--ink');g1.lineWidth=2;g1.beginPath();g1.arc(X(tt),Y(d),8,0,7);g1.fill();g1.stroke();
- $('sp_l').textContent='At '+v+' m/s, in '+t+' s the car covers '+v*t+' m. A steeper line on the graph means a faster car.'}
-/* reflection */
-var ra=$('rf_a'),c2=$('cv_rf').getContext('2d');
-function drawRefl(){var i=+ra.value,r=i*Math.PI/180,W=560,H=260,ox=280,oy=210,L=170,s=Math.sin(r),c=Math.cos(r);$('rf_ao').textContent=i+'°';
- c2.clearRect(0,0,W,H);c2.fillStyle=cs('--muted');c2.fillRect(100,oy,360,6);c2.strokeStyle=cs('--muted');c2.lineWidth=2;
- for(var x=104;x<460;x+=14){c2.beginPath();c2.moveTo(x,oy+6);c2.lineTo(x-8,oy+16);c2.stroke()}
- c2.setLineDash([6,6]);c2.beginPath();c2.moveTo(ox,oy);c2.lineTo(ox,30);c2.stroke();c2.setLineDash([]);
- arrow(c2,ox-L*s,oy-L*c,ox-4*s,oy-4*c,cs('--blue'));arrow(c2,ox,oy,ox+L*s,oy-L*c,cs('--green'));
- c2.fillStyle=cs('--ink');c2.font='700 15px Nunito,sans-serif';c2.textAlign='right';c2.fillText('i = '+i+'°',ox-14,oy-24);c2.textAlign='left';c2.fillText('r = '+i+'°',ox+14,oy-24);c2.fillText('normal',ox+8,42);
- $('rf_l').textContent=i===0?'The ray hits the mirror straight on (along the normal), so it bounces straight back.':'The ray comes in at '+i+'° and leaves at '+i+'°. Move the slider: the reflected ray always mirrors the incoming one.'}
-/* circuit */
-var cv=$('ci_v'),cr=$('ci_r'),sw=$('ci_s'),c3=$('cv_ci').getContext('2d'),off=0,last=performance.now();
-function drawCirc(now){var V=+cv.value,R=+cr.value,on=sw.checked,I=on?V/R:0,dt=Math.min((now-last)/1000,.1),x0=80,x1=480,y0=50,y1=210,W=560,H=260;last=now;
- off=(off+I*45*dt)%1120;$('ci_vo').textContent=V+' V';$('ci_ro').textContent=R+' Ω';$('ci_io').textContent=I.toFixed(2)+' A';
- c3.clearRect(0,0,W,H);c3.strokeStyle=cs('--ink');c3.lineWidth=3;c3.strokeRect(x0,y0,x1-x0,y1-y0);
- if(on)for(var k=0;k<14;k++){var q=(off+k*80)%1120,px,py;if(q<400){px=x0+q;py=y0}else if(q<560){px=x1;py=y0+q-400}else if(q<960){px=x1-(q-560);py=y1}else{px=x0;py=y1-(q-960)}
-  c3.fillStyle=cs('--accent');c3.beginPath();c3.arc(px,py,5,0,7);c3.fill()}
- var bg=cs('--bg');c3.fillStyle=bg;c3.fillRect(x0-16,100,32,60);c3.fillRect(x1-16,92,32,76);c3.fillRect(250,28,60,44);c3.fillRect(236,190,88,32);
- c3.strokeStyle=cs('--ink');c3.lineWidth=3;c3.beginPath();c3.moveTo(x0-18,118);c3.lineTo(x0+18,118);c3.moveTo(x0-9,138);c3.lineTo(x0+9,138);c3.stroke();
- c3.fillStyle=cs('--ink');c3.font='700 14px Nunito,sans-serif';c3.textAlign='right';c3.fillText('+',x0-24,122);c3.fillText('−',x0-24,144);c3.textAlign='left';c3.fillText(V+' V',x0+24,132);
- c3.beginPath();c3.moveTo(x1,96);for(var z=0;z<6;z++){c3.lineTo(x1+(z%2?-10:10),104+z*10)}c3.lineTo(x1,164);c3.stroke();c3.fillText(R+' Ω',x1+16,134);
- var gl=Math.min(1,I/1.5);if(gl>0){c3.fillStyle='rgba(255,200,61,'+(gl*.35)+')';c3.beginPath();c3.arc(280,y0,34,0,7);c3.fill()}
- c3.fillStyle=gl>0?'rgba(255,200,61,'+(.25+gl*.75)+')':bg;c3.strokeStyle=cs('--ink');c3.beginPath();c3.arc(280,y0,17,0,7);c3.fill();c3.stroke();
- c3.beginPath();c3.moveTo(268,y0-12);c3.lineTo(292,y0+12);c3.moveTo(292,y0-12);c3.lineTo(268,y0+12);c3.stroke();
- c3.beginPath();c3.arc(250,y1,4,0,7);c3.arc(310,y1,4,0,7);c3.fill();c3.beginPath();c3.moveTo(250,y1);c3.lineTo(on?310:304,on?y1:y1-22);c3.stroke();
- $('ci_l').textContent=on?'With '+V+' V and '+R+' Ω, the current is '+I.toFixed(2)+' A. Raise the resistance and the current drops, so the bulb gets dimmer.':'The switch is open, so the circuit is broken and no current flows.'}
-requestAnimationFrame(function L(now){if(!$('sim_speed').hidden)drawSpeed(now);if(!$('sim_refl').hidden)drawRefl();if(!$('sim_circ').hidden)drawCirc(now);requestAnimationFrame(L)});
-})();
-</script>
-<footer>ConceptLab prototype · Physics simulations for ICSE students</footer>
+<section class="panel" id="stage" hidden><div class="topics" id="tabs"></div><div class="sim"><div><canvas id="sc" aria-label="Simulation"></canvas><canvas id="gr" style="margin-top:12px" aria-label="Graph"></canvas></div><div><div class="formula" id="fm"></div><p class="note" id="nt" style="margin-top:0"></p><div id="ctls"></div><div class="learn" id="ln"></div></div></div></section>
+<footer>ConceptLab · Interactive simulations for ICSE students</footer>
 </div>
-
 <script>
 (function(){
-var cs=function(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()};
-function drawBlock(ctx,W,H,x,m,F,vis){
- var floor=H-50,s=26+m*5;
- ctx.clearRect(0,0,W,H);
- ctx.fillStyle=cs('--line');ctx.fillRect(0,floor,W,4);
- ctx.fillStyle=cs('--blue');
- ctx.beginPath();ctx.roundRect(x,floor-s,s*1.3,s,8);ctx.fill();
- ctx.fillStyle='#fff';ctx.font='700 16px Nunito,sans-serif';ctx.textAlign='center';
- ctx.fillText(m+' kg',x+s*.65,floor-s/2+6);
- if(F>0){var L=Math.min(10+F*3.2,200),y=floor-s/2;
-  ctx.strokeStyle=cs('--green');ctx.fillStyle=cs('--green');ctx.lineWidth=5;
-  ctx.beginPath();ctx.moveTo(x-6-L,y);ctx.lineTo(x-8,y);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(x-2,y);ctx.lineTo(x-14,y-9);ctx.lineTo(x-14,y+9);ctx.fill();
-  ctx.fillStyle=cs('--ink');ctx.font='700 15px Nunito,sans-serif';ctx.textAlign='left';
-  ctx.fillText('F = '+F+' N',Math.max(6,x-L-6),y-14);}
-}
-/* hero loop */
-var hc=document.getElementById('heroCv'),hx=hc.getContext('2d'),t0=performance.now();
-function hero(now){var t=((now-t0)/1000)%4,x=20+Math.pow(t,2)*22,m=4,F=8;
- drawBlock(hx,480,300,Math.min(x,420),m,F);requestAnimationFrame(hero)}
-requestAnimationFrame(hero);
-
-/* simulator */
-var sc=document.getElementById('simCv'),sx=sc.getContext('2d'),gc=document.getElementById('grCv'),gx=gc.getContext('2d');
-var mI=document.getElementById('m'),aI=document.getElementById('a'),st=performance.now();
-function vals(){return{m:+mI.value,a:+aI.value}}
-function graph(m,a){
- var W=560,H=260,p=44;gx.clearRect(0,0,W,H);
- gx.strokeStyle=cs('--line');gx.lineWidth=2;gx.beginPath();gx.moveTo(p,10);gx.lineTo(p,H-p);gx.lineTo(W-14,H-p);gx.stroke();
- gx.fillStyle=cs('--muted');gx.font='600 13px Nunito,sans-serif';gx.textAlign='center';
- gx.fillText('Acceleration a (m/s²)',W/2,H-10);
- gx.save();gx.translate(14,H/2);gx.rotate(-Math.PI/2);gx.fillText('Force F (N)',0,0);gx.restore();
- var X=function(v){return p+v/6*(W-p-24)},Y=function(v){return H-p-v/60*(H-p-20)};
- gx.strokeStyle=cs('--blue');gx.lineWidth=3;gx.beginPath();gx.moveTo(X(0),Y(0));gx.lineTo(X(6),Y(6*m));gx.stroke();
- gx.fillStyle=cs('--accent');gx.strokeStyle=cs('--ink');gx.lineWidth=2;
- gx.beginPath();gx.arc(X(a),Y(a*m),8,0,7);gx.fill();gx.stroke();
- gx.fillStyle=cs('--ink');gx.textAlign='left';gx.fillText('Slope = m = '+m,X(3.2),Y(3.2*m)-12);
-}
-function update(){var v=vals(),F=v.m*v.a;
- document.getElementById('mo').textContent=v.m+' kg';
- document.getElementById('ao').textContent=v.a+' m/s²';
- document.getElementById('fo').textContent=F+' N';
- var msg='Keep mass at '+v.m+' kg and raise a: the force goes up in a straight line. ';
- msg+=v.a===0?'With a = 0 there is no net force, so the block stays at rest or moves steadily.':'Right now you need '+F+' N to speed it up at '+v.a+' m/s².';
- document.getElementById('learn').textContent=msg;graph(v.m,v.a)}
-mI.oninput=aI.oninput=function(){st=performance.now();update()};
-document.getElementById('replay').onclick=function(){st=performance.now()};
-function loop(now){if(!document.getElementById('simPanel').hidden){var v=vals(),t=(now-st)/1000,x=20+0.5*v.a*t*t*18;
- if(x>480){st=now;x=20}drawBlock(sx,560,260,x,v.m,v.m*v.a)}requestAnimationFrame(loop)}
+var $=function(i){return document.getElementById(i)},css=function(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()};
+function fit(c,w,h){var d=Math.min(window.devicePixelRatio||1,2);c.width=w*d;c.height=h*d;var g=c.getContext('2d');g.setTransform(d,0,0,d,0,0);return g}
+function rr(g,x,y,w,h,r){g.beginPath();g.roundRect(x,y,w,h,r)}
+function lin(g,x0,y0,x1,y1,a,b){var q=g.createLinearGradient(x0,y0,x1,y1);q.addColorStop(0,a);q.addColorStop(1,b);return q}
+function txt(g,s,x,y,col,sz,al){g.fillStyle=col;g.font='800 '+(sz||15)+'px Nunito,sans-serif';g.textAlign=al||'left';g.fillText(s,x,y)}
+function arrow(g,x1,y1,x2,y2,col,w){w=w||6;g.save();g.strokeStyle=col;g.fillStyle=col;g.lineWidth=w;g.lineCap='round';g.shadowColor='rgba(0,0,0,.25)';g.shadowBlur=6;g.shadowOffsetY=2;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();var a=Math.atan2(y2-y1,x2-x1),h=w*2.6;g.beginPath();g.moveTo(x2+Math.cos(a)*h*.5,y2+Math.sin(a)*h*.5);g.lineTo(x2+Math.cos(a+2.5)*h*.8,y2+Math.sin(a+2.5)*h*.8);g.lineTo(x2+Math.cos(a-2.5)*h*.8,y2+Math.sin(a-2.5)*h*.8);g.fill();g.restore()}
+function glowDot(g,x,y,r,c){g.save();g.shadowColor=c;g.shadowBlur=14;g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,7);g.fill();g.restore()}
+var S={};
+/* ---------- FORCE ---------- */
+S.force={title:'Force',level:'Class 9',formula:'F = m × a',note:'Force is the push needed to give a mass an acceleration.',
+params:[{k:'m',l:'Mass (m)',u:' kg',min:1,max:10,step:1,v:5},{k:'a',l:'Acceleration (a)',u:' m/s²',min:0,max:6,step:.5,v:2}],
+graph:{xl:'Acceleration a (m/s²)',yl:'Force F (N)',xm:6,ym:60,line:function(s){return[[0,0],[6,6*s.m]]},dot:function(s){return[s.a,s.m*s.a]}},
+ro:function(s){return[['Force (F)',s.m*s.a+' N']]},
+ex:function(s){return 'With '+s.m+' kg and '+s.a+' m/s² you need '+s.m*s.a+' N. Double the mass and you need double the force for the same acceleration.'},
+draw:function(g,s,t){var F=s.m*s.a,tt=t%4,d=Math.min(.5*s.a*tt*tt*16,380),v=s.a*tt,x=110+d,sz=40+s.m*5,w=sz*1.3,fl=240,i;
+g.fillStyle=lin(g,0,0,0,300,'#dbeafe','#f6faff');g.fillRect(0,0,600,300);
+g.fillStyle=lin(g,0,fl,0,300,'#8393b4','#56648a');g.fillRect(0,fl,600,60);g.fillStyle='rgba(255,255,255,.55)';g.fillRect(0,fl,600,3);
+for(i=0;i<12;i++)g.fillRect(((i*70-d*.6)%700+700)%700-40,fl+28,30,3);
+g.fillStyle='rgba(20,33,61,.25)';g.beginPath();g.ellipse(x+w/2,fl+3,w*.62,6,0,0,7);g.fill();
+if(v>.3){g.strokeStyle='rgba(47,91,234,.4)';g.lineWidth=3;g.lineCap='round';for(i=0;i<3;i++){var yy=fl-sz*.3+i*sz*.22,L=Math.min(10+v*9,100)*(1-i*.2);g.beginPath();g.moveTo(x-8,yy);g.lineTo(x-8-L,yy);g.stroke()}}
+g.save();g.shadowColor='rgba(0,0,0,.3)';g.shadowBlur=12;g.shadowOffsetY=4;rr(g,x,fl-sz,w,sz,10);g.fillStyle=lin(g,x,fl-sz,x,fl,'#7b9dff','#2a4fd0');g.fill();g.restore();
+rr(g,x+6,fl-sz+6,w-12,8,4);g.fillStyle='rgba(255,255,255,.4)';g.fill();txt(g,s.m+' kg',x+w/2,fl-sz/2+8,'#fff',18,'center');
+if(F>0){var Lf=Math.min(24+F*3.2,200),y=fl-sz*.65;arrow(g,x-16-Lf,y,x-8,y,'#12a37f',8);txt(g,'F = '+F+' N',Math.max(12,x-16-Lf),y-18,'#0a7d63',16)}
+if(s.a>0){var ay=fl-sz-26;arrow(g,x+4,ay,x+4+Math.min(16+s.a*16,110),ay,'#e08a00',6);txt(g,'a = '+s.a+' m/s²',x+4,ay-14,'#b36b00',15)}}};
+/* ---------- SPEED ---------- */
+function stt(s,t){return Math.min(t%(s.t+1.5),s.t)}
+S.speed={title:'Speed',level:'Classes 6 to 8',formula:'d = v × t',note:'Distance covered equals speed multiplied by time.',
+params:[{k:'v',l:'Speed (v)',u:' m/s',min:1,max:20,step:1,v:8},{k:'t',l:'Time (t)',u:' s',min:1,max:10,step:1,v:5}],
+graph:{xl:'Time t (s)',yl:'Distance d (m)',xm:10,ym:200,line:function(s){return[[0,0],[s.t,s.v*s.t]]},dot:function(s,t){var q=stt(s,t);return[q,s.v*q]}},
+ro:function(s){return[['Distance (d)',s.v*s.t+' m']]},
+ex:function(s){return 'At '+s.v+' m/s, in '+s.t+' s the car covers '+s.v*s.t+' m. A steeper line on the graph means a faster car.'},
+draw:function(g,s,t){var q=stt(s,t),d=s.v*q,X=function(m){return 60+m*2.4},i,x;
+g.fillStyle=lin(g,0,0,0,215,'#7ec0ff','#f2f9ff');g.fillRect(0,0,600,300);glowDot(g,520,58,26,'#ffe27a');
+var hl=[['#a8e0b4',170,18,70,1.2],['#74c28f',188,12,45,2.4]];hl.forEach(function(h){g.fillStyle=h[0];g.beginPath();g.moveTo(0,215);for(x=0;x<=600;x+=10)g.lineTo(x,h[1]+Math.sin((x+d*h[4])/h[3])*h[2]);g.lineTo(600,215);g.fill()});
+g.fillStyle='#cdd5e3';g.fillRect(0,205,600,10);g.fillStyle=lin(g,0,215,0,285,'#5d687e','#434b5f');g.fillRect(0,215,600,70);
+g.fillStyle='rgba(255,255,255,.85)';for(i=0;i<9;i++)g.fillRect(((i*80-d*3)%720+720)%720-60,247,40,5);
+for(i=0;i<=200;i+=50){x=X(i);g.fillStyle='#2a3a6b';g.fillRect(x-1,186,2,20);txt(g,i+' m',x,298,'#2a3a6b',12,'center')}
+var fx=X(s.v*s.t);g.fillStyle='#2a3a6b';g.fillRect(fx-1,160,3,46);g.fillStyle='#e5484d';g.beginPath();g.moveTo(fx+2,160);g.lineTo(fx+26,168);g.lineTo(fx+2,178);g.fill();
+var cx=X(d)-40,rot=d*.9;g.fillStyle='rgba(20,33,61,.25)';g.beginPath();g.ellipse(cx+40,270,44,6,0,0,7);g.fill();
+g.save();g.shadowColor='rgba(0,0,0,.25)';g.shadowBlur=8;rr(g,cx,230,80,28,9);g.fillStyle=lin(g,0,230,0,258,'#ff6b6b','#d93a3f');g.fill();g.restore();
+rr(g,cx+16,210,46,26,9);g.fillStyle='#e04a4f';g.fill();rr(g,cx+20,214,16,16,4);g.fillStyle='#d6ecff';g.fill();rr(g,cx+40,214,18,16,4);g.fill();
+[18,62].forEach(function(w){var wx=cx+w;g.fillStyle='#1d2433';g.beginPath();g.arc(wx,260,12,0,7);g.fill();g.strokeStyle='#c9d3e6';g.lineWidth=3;for(var k=0;k<3;k++){var a=rot+k*Math.PI/1.5;g.beginPath();g.moveTo(wx,260);g.lineTo(wx+Math.cos(a)*8,260+Math.sin(a)*8);g.stroke()}});
+txt(g,'t = '+q.toFixed(1)+' s',20,34,'#14213d',18);txt(g,'d = '+d.toFixed(0)+' m',20,58,'#14213d',18)}};
+/* ---------- REFLECTION ---------- */
+S.reflection={title:'Reflection',level:'Classes 7 to 8',formula:'∠i = ∠r',note:'The angle of incidence equals the angle of reflection, both measured from the normal.',
+params:[{k:'i',l:'Angle of incidence (i)',u:'°',min:0,max:80,step:5,v:35}],
+graph:{xl:'Angle of incidence i (°)',yl:'Angle of reflection r (°)',xm:80,ym:80,line:function(){return[[0,0],[80,80]]},dot:function(s){return[s.i,s.i]}},
+ro:function(s){return[['Reflected angle (r)',s.i+'°']]},
+ex:function(s){return s.i===0?'The ray hits the mirror straight on, along the normal, so it bounces straight back.':'The ray arrives at '+s.i+'° and leaves at '+s.i+'°. Move the slider: the reflected ray always mirrors the incoming one.'},
+draw:function(g,s,t){var r=s.i*Math.PI/180,sn=Math.sin(r),cs=Math.cos(r),ox=300,oy=232,L=190,sx=ox-L*sn,sy=oy-L*cs,i;
+g.fillStyle=lin(g,0,0,0,300,'#0e1a38','#243d78');g.fillRect(0,0,600,300);
+rr(g,120,oy,360,16,6);g.fillStyle=lin(g,0,oy,0,oy+16,'#eef6ff','#9db8e6');g.fill();g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=2;for(i=126;i<480;i+=14){g.beginPath();g.moveTo(i,oy+16);g.lineTo(i-8,oy+26);g.stroke()}
+g.setLineDash([7,7]);g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=2;g.beginPath();g.moveTo(ox,oy);g.lineTo(ox,40);g.stroke();g.setLineDash([]);txt(g,'normal',ox+8,54,'rgba(255,255,255,.75)',13);
+g.save();g.translate(sx,sy);g.rotate(Math.atan2(oy-sy,ox-sx));rr(g,-40,-10,36,20,6);g.fillStyle='#c3cde0';g.fill();rr(g,-6,-8,8,16,3);g.fillStyle='#ffd84d';g.fill();g.restore();
+g.lineCap='round';g.lineWidth=5;g.save();g.shadowBlur=14;g.shadowColor='#ffd84d';g.strokeStyle='#ffd84d';g.beginPath();g.moveTo(sx,sy);g.lineTo(ox,oy);g.stroke();
+g.shadowColor='#5ef0c3';g.strokeStyle='#5ef0c3';g.beginPath();g.moveTo(ox,oy);g.lineTo(ox+L*sn,oy-L*cs);g.stroke();g.restore();
+var p=(t*.6)%1;glowDot(g,sx+(ox-sx)*p,sy+(oy-sy)*p,6,'#ffffff');glowDot(g,ox+L*sn*p,oy-L*cs*p,6,'#ffffff');
+g.lineWidth=3;g.strokeStyle='#ffd84d';g.beginPath();g.arc(ox,oy,64,-Math.PI/2-r,-Math.PI/2);g.stroke();g.strokeStyle='#5ef0c3';g.beginPath();g.arc(ox,oy,76,-Math.PI/2,-Math.PI/2+r);g.stroke();
+txt(g,'incident i = '+s.i+'°',ox-14,oy+48,'#ffe38a',15,'right');txt(g,'reflected r = '+s.i+'°',ox+14,oy+48,'#8ff5d6',15)}};
+/* ---------- CIRCUIT ---------- */
+S.circuit={title:'Circuit',level:'Classes 8 to 10',formula:'V = I × R',note:'Current is the voltage divided by the resistance.',off:0,
+params:[{k:'V',l:'Battery voltage (V)',u:' V',min:1,max:12,step:1,v:6},{k:'R',l:'Resistance (R)',u:' Ω',min:1,max:20,step:1,v:4},{k:'on',l:'Switch ON',type:'toggle',v:true}],
+graph:{xl:'Voltage V (volts)',yl:'Current I (amps)',xm:12,ym:12,line:function(s){return[[0,0],[12,12/s.R]]},dot:function(s){return[s.V,s.on?s.V/s.R:0]}},
+ro:function(s){return[['Current (I)',(s.on?s.V/s.R:0).toFixed(2)+' A']]},
+ex:function(s){return s.on?'With '+s.V+' V and '+s.R+' Ω, the current is '+(s.V/s.R).toFixed(2)+' A. Increase the resistance and the current drops, so the bulb dims.':'The switch is open, so the circuit is broken and no current flows.'},
+draw:function(g,s,t,dt){var V=s.V,R=s.R,on=s.on,I=on?V/R:0,gl=Math.min(1,I/1.5),x0=110,x1=490,y0=70,y1=230,i;this.off=(this.off+I*55*dt)%1120;
+g.fillStyle=lin(g,0,0,0,300,'#0f1b3a','#1d305f');g.fillRect(0,0,600,300);
+g.strokeStyle='#aab8d6';g.lineWidth=6;g.lineJoin='round';g.beginPath();g.moveTo(255,y0);g.lineTo(x0,y0);g.lineTo(x0,120);g.moveTo(x0,180);g.lineTo(x0,y1);g.lineTo(240,y1);g.moveTo(360,y1);g.lineTo(x1,y1);g.lineTo(x1,180);g.moveTo(x1,120);g.lineTo(x1,y0);g.lineTo(345,y0);g.stroke();
+if(on)for(i=0;i<16;i++){var q=(this.off+i*70)%1120,px,py;if(q<380){px=x0+q+0;py=y0}else if(q<540){px=x1;py=y0+q-380}else if(q<920){px=x1-(q-540);py=y1}else{px=x0;py=y1-(q-920)}
+if((py===y0&&px>255&&px<345)||(py===y1&&px>240&&px<360)||(px===x1&&py>120&&py<180)||(px===x0&&py>120&&py<180))continue;glowDot(g,px,py,5,'#ffd84d')}
+rr(g,x0-22,118,44,64,9);g.fillStyle=lin(g,x0-22,0,x0+22,0,'#ffb347','#e8871e');g.fill();rr(g,x0-8,110,16,10,3);g.fillStyle='#cfd8ea';g.fill();txt(g,'+',x0,142,'#5a3400',20,'center');txt(g,'−',x0,172,'#5a3400',22,'center');txt(g,V+' V',x0-34,156,'#fff',16,'right');
+rr(g,x1-18,118,36,64,10);g.fillStyle=lin(g,x1-18,0,x1+18,0,'#ead7ae','#c9ac74');g.fill();[['#c0392b',130],['#2a3a6b',148],['#2c9c6a',166]].forEach(function(b){g.fillStyle=b[0];g.fillRect(x1-18,b[1],36,7)});txt(g,R+' Ω',x1+30,156,'#fff',16);
+if(gl>0){var rg=g.createRadialGradient(300,y0,4,300,y0,30+gl*70);rg.addColorStop(0,'rgba(255,214,90,'+.6*gl+')');rg.addColorStop(1,'rgba(255,214,90,0)');g.fillStyle=rg;g.beginPath();g.arc(300,y0,100,0,7);g.fill()}
+g.beginPath();g.arc(300,y0,24,0,7);g.fillStyle=gl>0?'rgba(255,226,120,'+(.35+.6*gl)+')':'rgba(220,235,255,.18)';g.fill();g.lineWidth=3;g.strokeStyle='#d7e3ff';g.stroke();
+g.strokeStyle=gl>0?'#fff4c2':'#8d9bbd';g.lineWidth=3;g.beginPath();g.moveTo(290,y0+22);g.lineTo(290,y0+6);g.lineTo(295,y0-6);g.lineTo(305,y0+6);g.lineTo(310,y0-6);g.lineTo(310,y0+22);g.stroke();rr(g,287,y0+22,26,12,3);g.fillStyle='#9aa8c7';g.fill();
+g.fillStyle='#d7e3ff';[240,360].forEach(function(px){g.beginPath();g.arc(px,y1,8,0,7);g.fill()});g.strokeStyle=on?'#ffd84d':'#aab8d6';g.lineWidth=7;g.lineCap='round';g.beginPath();g.moveTo(240,y1);g.lineTo(on?360:348,on?y1:y1-38);g.stroke();txt(g,on?'ON':'OFF',300,y1+34,'#d7e3ff',14,'center')}};
+/* ---------- ENGINE ---------- */
+var th=function(){return{ink:css('--ink'),muted:css('--muted'),line:css('--line'),blue:css('--blue'),acc:css('--accent'),surf:css('--surface')}};
+function graph(g,gr,s,t){var W=600,H=240,p={l:58,r:20,t:16,b:46},T=th(),i;g.clearRect(0,0,W,H);rr(g,0,0,W,H,14);g.fillStyle=T.surf;g.fill();
+var X=function(v){return p.l+v/gr.xm*(W-p.l-p.r)},Y=function(v){return H-p.b-v/gr.ym*(H-p.t-p.b)};
+g.lineWidth=1;g.font='600 12px Nunito,sans-serif';
+for(i=0;i<=4;i++){var gx=gr.xm*i/4,gy=gr.ym*i/4;g.strokeStyle=T.line;g.beginPath();g.moveTo(X(gx),Y(0));g.lineTo(X(gx),Y(gr.ym));g.moveTo(X(0),Y(gy));g.lineTo(X(gr.xm),Y(gy));g.stroke();g.fillStyle=T.muted;g.textAlign='center';g.fillText(+gx.toFixed(1),X(gx),H-p.b+16);g.textAlign='right';g.fillText(+gy.toFixed(0),p.l-8,Y(gy)+4)}
+g.textAlign='center';g.fillText(gr.xl,(W+p.l)/2,H-10);g.save();g.translate(14,H/2);g.rotate(-Math.PI/2);g.fillText(gr.yl,0,0);g.restore();
+var L=gr.line(s);g.save();g.strokeStyle=T.blue;g.lineWidth=4;g.lineCap='round';g.shadowColor=T.blue;g.shadowBlur=8;g.beginPath();g.moveTo(X(L[0][0]),Y(L[0][1]));g.lineTo(X(L[1][0]),Y(L[1][1]));g.stroke();g.restore();
+var d=gr.dot(s,t);g.setLineDash([5,5]);g.strokeStyle=T.muted;g.beginPath();g.moveTo(X(d[0]),Y(d[1]));g.lineTo(X(d[0]),Y(0));g.moveTo(X(d[0]),Y(d[1]));g.lineTo(X(0),Y(d[1]));g.stroke();g.setLineDash([]);
+g.fillStyle=T.acc;g.strokeStyle=T.ink;g.lineWidth=2.5;g.beginPath();g.arc(X(d[0]),Y(d[1]),9,0,7);g.fill();g.stroke()}
+var sg=fit($('sc'),600,300),gg=fit($('gr'),600,240),hg=fit($('heroCv'),600,300),cur=null,st={},t0=performance.now(),last=t0;
+function build(id){cur=S[id];st={};cur.params.forEach(function(p){st[p.k]=p.v});
+$('tabs').innerHTML=Object.keys(S).map(function(k){return '<span data-k="'+k+'" style="cursor:pointer" class="'+(k===id?'on':'')+'">'+S[k].title+'</span>'}).join('');
+Array.prototype.forEach.call($('tabs').children,function(e){e.onclick=function(){build(e.getAttribute('data-k'))}});
+$('fm').textContent=cur.formula;$('nt').textContent=cur.level+' · '+cur.note;
+$('ctls').innerHTML=cur.params.map(function(p){return p.type==='toggle'?'<div class="ctl"><label><input type="checkbox" id="c_'+p.k+'" checked> '+p.l+'</label></div>':'<div class="ctl"><label for="c_'+p.k+'">'+p.l+' <output id="o_'+p.k+'"></output></label><input id="c_'+p.k+'" type="range" min="'+p.min+'" max="'+p.max+'" step="'+p.step+'" value="'+p.v+'"></div>'}).join('')+'<div id="ro"></div>';
+cur.params.forEach(function(p){var e=$('c_'+p.k);e.oninput=function(){st[p.k]=p.type==='toggle'?e.checked:+e.value}});$('stage').hidden=false}
+window.openSim=function(id){if(!S[id])return false;build(id);setTimeout(function(){$('stage').scrollIntoView({behavior:'smooth',block:'start'})},120);return true};
+function loop(now){var dt=Math.min((now-last)/1000,.1),t=(now-t0)/1000;last=now;S.force.draw(hg,{m:4,a:3},t,dt);
+if(cur&&!$('stage').hidden){cur.draw(sg,st,t,dt);graph(gg,cur.graph,st,t);cur.params.forEach(function(p){var o=$('o_'+p.k);if(o)o.textContent=st[p.k]+p.u});
+$('ro').innerHTML=cur.ro(st).map(function(r){return '<div class="ctl"><label>'+r[0]+' <output>'+r[1]+'</output></label></div>'}).join('');$('ln').textContent=cur.ex(st)}
+requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
-
-/* upload flow */
-var file=document.getElementById('file'),an=document.getElementById('analyze'),prev=document.getElementById('prev'),found=document.getElementById('found');
-var cur=null;function esc(t){return String(t||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+/* ---------- UPLOAD FLOW ---------- */
+var file=$('file'),an=$('analyze'),prev=$('prev'),found=$('found'),img=null;
+function esc(t){return String(t||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
 function shrink(src,cb){var i=new Image();i.onload=function(){var k=Math.min(1,1280/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.82))};i.src=src}
-function setImg(src){cur=src;prev.innerHTML='<img alt="Your textbook page" src="'+src+'"><span class="note">Tap to change photo</span>';an.disabled=false;found.hidden=true}
+function setImg(src){img=src;prev.innerHTML='<img alt="Your textbook page" src="'+src+'"><span class="note">Tap to change photo</span>';an.disabled=false;found.hidden=true}
 file.onchange=function(){var f=file.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){setImg(e.target.result)};r.readAsDataURL(f)};
-function samplePage(){var c=document.createElement('canvas');c.width=420;c.height=260;var x=c.getContext('2d');
- x.fillStyle='#fffdf5';x.fillRect(0,0,420,260);x.fillStyle='#222';x.font='700 20px serif';x.fillText('Chapter 1: Force and Newton\u2019s Second Law',16,34);
- x.font='15px serif';x.fillText('Force = mass \u00d7 acceleration   (F = ma)',16,64);
- x.fillStyle='#8aa';x.fillRect(60,150,90,60);x.fillStyle='#222';x.fillText('m',98,186);
- x.strokeStyle='#c33';x.lineWidth=3;x.beginPath();x.moveTo(0+10,180);x.lineTo(56,180);x.stroke();x.fillText('F \u2192 a',16,170);
- x.fillRect(10,212,400,3);return c.toDataURL()}
-document.getElementById('sample').onclick=function(){setImg(samplePage());an.click()};
-an.onclick=function(){
- if(!cur)return;an.disabled=true;an.textContent='Reading the page...';
- var done=function(){an.textContent='Make it move';an.disabled=false};
- shrink(cur,function(data){
-  fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:data})})
-  .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||'Something went wrong');return j})})
-  .then(function(d){
-   var p=document.getElementById('simPanel');found.hidden=false;
-   found.innerHTML='<b>Found: '+esc(d.concept)+'</b><br>'+esc(d.subject)+', Class '+esc(d.class_level)+(d.formula?' · '+esc(d.formula):'')+'<br>'+esc(d.summary);
-   if(d.simulation==='force'){window.hideExtra&&window.hideExtra();p.hidden=false;update();st=performance.now();setTimeout(function(){p.scrollIntoView({behavior:'smooth',block:'start'})},150)}
-   else{p.hidden=true;window.hideExtra&&window.hideExtra();if(!(window.showSim&&window.showSim(d.simulation))){found.innerHTML+='<br><i>The simulation for this topic is coming soon.</i>'}}
-   done()})
-  .catch(function(e){found.hidden=false;found.innerHTML='<b>Could not read the page.</b> '+esc(e.message);done()})
- })};
-document.getElementById('start').onclick=function(){document.getElementById('upload').scrollIntoView({behavior:'smooth'})};
-document.getElementById('theme').onclick=function(){var d=document.documentElement,dark=cs('--bg')==='#0f1830';d.setAttribute('data-theme',dark?'light':'dark');setTimeout(update,30)};
+function samplePage(){var c=document.createElement('canvas');c.width=420;c.height=260;var x=c.getContext('2d');x.fillStyle='#fffdf5';x.fillRect(0,0,420,260);x.fillStyle='#222';x.font='700 20px serif';x.fillText('Chapter 1: Force and Newton\u2019s Second Law',16,34);x.font='15px serif';x.fillText('Force = mass \u00d7 acceleration   (F = ma)',16,64);x.fillStyle='#8aa';x.fillRect(60,150,90,60);x.fillStyle='#222';x.fillText('m',98,186);x.fillRect(10,212,400,3);return c.toDataURL()}
+$('sample').onclick=function(){setImg(samplePage());an.click()};
+an.onclick=function(){if(!img)return;an.disabled=true;an.textContent='Reading the page...';var done=function(){an.textContent='Make it move';an.disabled=false};
+shrink(img,function(data){fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:data})})
+.then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||'Something went wrong');return j})})
+.then(function(d){found.hidden=false;found.innerHTML='<b>Found: '+esc(d.concept)+'</b><br>'+esc(d.subject)+', Class '+esc(d.class_level)+(d.formula?' · '+esc(d.formula):'')+'<br>'+esc(d.summary);
+if(!window.openSim(d.simulation)){$('stage').hidden=true;found.innerHTML+='<br><i>The simulation for this topic is coming soon.</i>'}done()})
+.catch(function(e){found.hidden=false;found.innerHTML='<b>Could not read the page.</b> '+esc(e.message);done()})})};
+Array.prototype.forEach.call(document.querySelectorAll('[data-sim]'),function(b){b.onclick=function(){window.openSim(b.getAttribute('data-sim'))}});
+$('start').onclick=function(){$('upload').scrollIntoView({behavior:'smooth'})};
+$('theme').onclick=function(){var d=document.documentElement,dark=css('--bg')==='#0f1830';d.setAttribute('data-theme',dark?'light':'dark')};
 })();
 </script>
 </body>
