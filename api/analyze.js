@@ -1,13 +1,14 @@
 // Vercel serverless function: reads a textbook photo, returns the concept, a teaching pack,
 // and either a built-in simulation id or a validated spec for the generic model engine.
 const SYL = require('./_syllabus');
+const { match } = require('./_matcher');
 const hits = new Map();
 const LIMIT = 20, WINDOW = 60 * 60 * 1000;
 
-const PROMPT = `You are a kind, clear teacher for ICSE students (Class 1 to 10, plus Class 11 foundations) in India. Look at this textbook photo.
+const PROMPT = `You are a kind, clear teacher for ICSE students (Class 6 to 10, with Class 11 foundations) in India. Look at this textbook photo.
 Reply with ONLY JSON in this shape:
 {"is_textbook":true,"subject":"Physics","class_level":"8","concept":"short name","formula":"main formula or empty","summary":"one simple sentence",
-"simulation":"force | speed | reflection | circuit | projectile | freefall | fractions | custom | none",
+"simulation":"force | speed | reflection | circuit | projectile | freefall | fractions | current | atom | custom | none",
 "spec":{"title":"Density","level":"Class 8","formula":"D = m / V","note":"one sentence",
  "vars":[{"k":"m","label":"Mass","unit":"g","min":10,"max":200,"step":10,"val":80}],
  "outs":[{"k":"D","label":"Density","unit":"g/cm3","expr":"m / V"}],
@@ -15,10 +16,10 @@ Reply with ONLY JSON in this shape:
 "learn":{"predict":{"q":"","options":["","",""],"answer":0,"why":""},"notice":["","",""],"real_life":"",
  "challenge":{"text":"","out":"D","target":2,"tol":0.1},"quiz":{"q":"","options":["","",""],"answer":0,"why":""}}}
 Rules:
-- Built-ins: force = F=ma and Newton's laws; speed = d=v*t; reflection = laws of reflection; circuit = V=IR with current, voltage, resistance; projectile = projectile motion, launch angle, range; freefall = free fall and acceleration due to gravity; fractions = fractions and equivalent fractions.
+- Built-ins: force = F=ma and Newton's laws; speed = d=v*t; reflection = laws of reflection; circuit = V=IR with current, voltage, resistance; projectile = projectile motion, launch angle, range; freefall = free fall and acceleration due to gravity; fractions = fractions and equivalent fractions; current = electric charge, electrons and current flow (I=Q/t); atom = atomic structure, protons, neutrons, electrons and shells.
 - Use "custom" for any other topic with a formula or a relationship between quantities, and include "spec". Use "none" if nothing is quantitative. Include "spec" only for custom.
 - spec: 1 to 4 vars with short letter-only keys; 1 to 3 outs; each expr uses only var keys or earlier out keys, numbers, + - * / ^ ( ), sqrt, abs, sin, cos, tan (degrees), pi. "xvar" is a var key.
-- learn: simple short sentences for the student's class. Quiz must differ from predict. The challenge target must be reachable with the slider ranges. For built-ins, challenge.out must be F (force), d (speed), r (reflection), I (circuit), R (projectile), v (freefall) or pct (fractions).`;
+- learn: simple short sentences for the student's class. Quiz must differ from predict. The challenge target must be reachable with the slider ranges. For built-ins, challenge.out must be F (force), d (speed), r (reflection), I (circuit), R (projectile), v (freefall), pct (fractions), I (current) or valence (atom).`;
 
 const EXTRA = `\nAlso add "topic_id": the id from this syllabus list that best matches the page, or "other":\n` + SYL.map(x => x.id + ': ' + x.subject + ' - ' + x.topic).join('\n') + `\nInside "learn" also add "summary" (2 to 3 very simple sentences), "formulas" (array of {"f":"formula","m":"what it means"}) and "remember" (3 to 5 short things to remember).`;
 const MODELS = [process.env.GROQ_MODEL || 'qwen/qwen3.8-27b', 'meta-llama/llama-4-scout-17b-16e-instruct'];
@@ -32,7 +33,7 @@ const mcq = (m) => {
 
 function clean(j) {
   const out = { is_textbook: j.is_textbook !== false, subject: str(j.subject, 30), class_level: str(j.class_level, 20), concept: str(j.concept, 80), formula: str(j.formula, 60), summary: str(j.summary, 200),
-    simulation: ['force', 'speed', 'reflection', 'circuit', 'projectile', 'freefall', 'fractions', 'custom'].includes(j.simulation) ? j.simulation : 'none' };
+    simulation: ['force', 'speed', 'reflection', 'circuit', 'projectile', 'freefall', 'fractions', 'current', 'atom', 'custom'].includes(j.simulation) ? j.simulation : 'none' };
   const L = j.learn || {};
   out.learn = { predict: mcq(L.predict), quiz: mcq(L.quiz), notice: Array.isArray(L.notice) ? L.notice.slice(0, 4).map(x => str(x, 120)) : [], real_life: str(L.real_life, 160) };
   out.learn.summary = str(L.summary, 300);
@@ -49,7 +50,12 @@ function clean(j) {
     if (vars.length && outs.length) out.spec = { title: str(sp.title || j.concept, 60), level: str(sp.level || 'Class ' + out.class_level, 30), formula: str(sp.formula || j.formula, 60), note: str(sp.note || j.summary, 200), vars, outs, xvar: vars.some(v => v.k === sp.xvar) ? sp.xvar : vars[0].k };
     else out.simulation = 'none';
   }
-  const topic = SYL.find(x => x.id === j.topic_id);
+  const m = match([j.concept, j.subject, j.formula, j.summary, L.summary].join(' '), 3);
+  let topic = SYL.find(x => x.id === j.topic_id), conf = 'low';
+  if (topic) conf = m.some(x => x.id === topic.id && x.score > 0.12) ? 'high' : 'medium';
+  else if (m[0] && m[0].score >= 0.3) { topic = SYL.find(x => x.id === m[0].id); conf = 'medium'; }
+  out.confidence = conf;
+  out.suggestions = m.filter(x => x.score > 0.12).map(x => { const y = SYL.find(z => z.id === x.id); return { id: y.id, topic: y.topic, sim: y.sim, score: +x.score.toFixed(2) }; });
   out.topic_id = topic ? topic.id : 'other'; out.topic = topic ? topic.topic : '';
   if (topic && topic.sim && topic.sim !== 'ai') { out.simulation = topic.sim; delete out.spec; } // syllabus map decides built-in simulations
   return out;
